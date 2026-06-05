@@ -52,6 +52,29 @@ Los plugins de ruflo añaden agentes y capacidades adicionales:
 
 Los plugins se cargan automáticamente desde el directorio `plugins/`. Usa `ruflo_plugin_list` para ver los instalados y `ruflo_plugin_scan` para recargar.
 
+## Auto-Logging Global
+
+Todo el trabajo que realices con `@agente` o `#swarm` se guarda **automáticamente** en:
+1. **Memoria ruflo** — base de datos SQLite (observations)
+2. **Obsidian LLM-Wiki** — `LLM-Wiki/log.md` (formato cronológico)
+3. **opencode-mem** — memoria persistente entre sesiones (vía plugin global)
+
+No necesitas hacer nada adicional. El registro ocurre de forma invisible.
+
+### Resumen diario
+
+Usa `#resumen` al final del día para compilar todo el trabajo realizado. El resumen se guarda en:
+- `LLM-Wiki/log.md`
+- `LLM-Wiki/wiki/fuentes/YYYY-MM-DD-resumen-diario.md`
+- Memoria ruflo (type: summary)
+
+### wiki-keeper (global)
+
+El agente `@wiki-keeper` está disponible desde cualquier proyecto (no solo desde el vault Obsidian). Úsalo para:
+- Consultar conocimiento acumulado
+- Ingerir nuevas fuentes
+- Mantener páginas de la wiki
+
 ## Herramientas MCP
 
 ### Agentes (6)
