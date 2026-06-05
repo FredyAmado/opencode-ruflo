@@ -3,4 +3,9 @@ dist/
 .env
 *.log
 *.db
+*.db-shm
+*.db-wal
 .DS_Store
+bun.lock
+package-lock.json
+*.tsbuildinfo
