@@ -1,0 +1,10 @@
+{
+  "name": "opencode-ruflo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ruflo — Multi-agent orchestration for Opencode",
+  "workspaces": [
+    "server",
+    "mcp"
+  ]
+}

@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/components/agents.tsx","./src/components/context.tsx","./src/components/dashboard.tsx","./src/components/memory.tsx","./src/components/plugins.tsx","./src/components/swarms.tsx"],"version":"5.8.3"}
