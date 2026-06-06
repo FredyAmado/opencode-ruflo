@@ -41,9 +41,15 @@ export class TaskStore {
     const values: any[] = [status];
     if (output !== undefined) { updates.push("output = ?"); values.push(output); }
     if (error !== undefined) { updates.push("error = ?"); values.push(error); }
-    if (status === 'running') { updates.push("started_at = datetime('now')"); }
+    if (status === 'running' || status === 'processing') { updates.push("started_at = datetime('now')"); }
     if (status === 'completed' || status === 'failed') { updates.push("completed_at = datetime('now')"); }
     values.push(id);
     getDb().query(`UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+  }
+
+  updateTokens(id: number, input: number, output: number, cache?: number): void {
+    getDb().query(
+      `UPDATE tasks SET tokens_input = ?, tokens_output = ?, tokens_cache = ? WHERE id = ?`
+    ).run(input, output, cache || 0, id);
   }
 }

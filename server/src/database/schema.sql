@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS tasks (
   input TEXT NOT NULL DEFAULT '{}',
   output TEXT,
   error TEXT,
+  tokens_input INTEGER NOT NULL DEFAULT 0,
+  tokens_output INTEGER NOT NULL DEFAULT 0,
+  tokens_cache INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   started_at TEXT,
   completed_at TEXT

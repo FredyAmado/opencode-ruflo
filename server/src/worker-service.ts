@@ -14,6 +14,8 @@ import contextRouter from './routes/context.js';
 import summarizeRouter from './routes/summarize.js';
 import swarmsRouter from './routes/swarms.js';
 import pluginsRouter from './routes/plugins.js';
+import orchestrateRouter from './routes/orchestrate.js';
+import statsRouter from './routes/stats.js';
 import { PluginManager } from './plugins/PluginManager.js';
 
 const settings = new SettingsManager();
@@ -32,6 +34,8 @@ app.use('/api/context', contextRouter);
 app.use('/api/summarize', summarizeRouter);
 app.use('/api/swarms', swarmsRouter);
 app.use('/api/plugins', pluginsRouter);
+app.use('/api/orchestrate', orchestrateRouter);
+app.use('/api/stats', statsRouter);
 
 const webUiDist = path.join(import.meta.dir, '..', '..', 'web-ui', 'dist');
 if (existsSync(webUiDist)) {

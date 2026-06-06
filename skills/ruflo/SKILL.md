@@ -8,6 +8,7 @@ Usa `@<nombre> <mensaje>` para hablar directamente con un agente:
 
 | Comando | Agente | Descripción | Plugin |
 |---------|--------|-------------|--------|
+| `@ceo <tarea>` | CEO | **Estratega y orquestador**. Planea, delega y da seguimiento usando el sistema ruflo | core |
 | `@coder <tarea>` | Coder | Programación y desarrollo | core |
 | `@tester <tarea>` | Tester | Pruebas y aseguramiento de calidad | core |
 | `@architect <tarea>` | Architect | Arquitectura y diseño de sistemas | core |
@@ -21,6 +22,14 @@ Usa `@<nombre> <mensaje>` para hablar directamente con un agente:
 | `@security-auditor <tarea>` | Security Auditor | Auditoría OWASP de seguridad | security-audit |
 | `@test-generator <tarea>` | Test Generator | Generación automática de tests | testgen |
 | `@doc-writer <tarea>` | Doc Writer | Documentación técnica | docs |
+
+## CEO — Orquestación Multi-Agente
+
+El agente `@ceo` es tu interfaz principal para el sistema ruflo. Usa `@ceo` para:
+
+- **Planificar**: `@ceo plan crear login con JWT` → analiza y sugiere agentes
+- **Ejecutar**: `@ceo build crear login con JWT` → orquesta agentes en background
+- **Consultar**: `@ceo task 42` → ve el estado de una tarea en ejecución
 
 ## Swarms (Enjambres de agentes)
 
@@ -52,14 +61,26 @@ Los plugins de ruflo añaden agentes y capacidades adicionales:
 
 Los plugins se cargan automáticamente desde el directorio `plugins/`. Usa `ruflo_plugin_list` para ver los instalados y `ruflo_plugin_scan` para recargar.
 
+## Enrutamiento Automático de @comandos
+
+El plugin ruflo intercepta todos tus @comandos usando el hook `experimental.chat.messages.transform`, que los detecta ANTES de que lleguen al AI. Esto significa que:
+
+- **`@ceo <tarea>`** → siempre se redirige al agente CEO (sin depender de que el AI lo detecte)
+- **`@wiki-keeper <tarea>`** → siempre se redirige al wiki-keeper
+- **`#swarm <objetivo>`** → se convierte en una orquestación multi-agente
+- **`#resumen`** → compila el resumen del día automáticamente
+- **Model fallback** → `@retry-*`, `@img-*`, `@video-*` se redirigen al agente correcto
+
+El ruteo es invisible para vos. El plugin modifica el mensaje antes de que el AI lo procese, agregando instrucciones explícitas de delegación.
+
 ## Auto-Logging Global
 
-Todo el trabajo que realices con `@agente` o `#swarm` se guarda **automáticamente** en:
+Todo el trabajo que realices se guarda **automáticamente** en:
 1. **Memoria ruflo** — base de datos SQLite (observations)
-2. **Obsidian LLM-Wiki** — `LLM-Wiki/log.md` (formato cronológico)
+2. **Obsidian LLM-Wiki** — `LLM-Wiki/log.md` (formato cronológico) y páginas en `wiki/fuentes/auto/`
 3. **opencode-mem** — memoria persistente entre sesiones (vía plugin global)
 
-No necesitas hacer nada adicional. El registro ocurre de forma invisible.
+No necesitas hacer nada adicional. El registro ocurre a nivel de plugin, de forma invisible.
 
 ### Resumen diario
 
@@ -74,6 +95,21 @@ El agente `@wiki-keeper` está disponible desde cualquier proyecto (no solo desd
 - Consultar conocimiento acumulado
 - Ingerir nuevas fuentes
 - Mantener páginas de la wiki
+
+## Skills de flujo de trabajo
+
+Skills adicionales disponibles para metodologías de desarrollo:
+
+| Skill | Descripción | Cuándo usarla |
+|-------|-------------|---------------|
+| `subagent-driven-development` | Ejecutar planes con subagente fresco por tarea + revisión 2 etapas | Al implementar un plan multi-tarea |
+| `dispatching-parallel-agents` | Despachar múltiples subagentes en paralelo para tareas independientes | Cuando 2+ tareas no comparten estado |
+| `writing-plans` | Escribir planes de implementación detallados con tareas atómicas y código completo | Antes de codificar una feature multi-paso |
+| `memory-lifecycle` | Pipeline formal del ciclo de vida de memoria (init → observe → compact → end) | Para entender cómo se persiste el estado |
+| `context-monitor` | Alertas de agotamiento de contexto, costo alto y scope creep | Cuando la sesión se siente lenta o errática |
+| `hook-profiles` | Perfiles de logging (minimal/standard/strict) | Para controlar el nivel de ruido en memoria |
+
+Cargá cualquier skill con el comando `skill <nombre>`.
 
 ## Herramientas MCP
 
@@ -102,8 +138,21 @@ El agente `@wiki-keeper` está disponible desde cualquier proyecto (no solo desd
 | `ruflo_swarm_execute` | Ejecuta un swarm con un objetivo |
 | `ruflo_swarm_status` | Consulta estado y resultados de un swarm |
 
-### Plugins (2)
+### Plugins (3)
 | Herramienta | Descripción |
 |-------------|-------------|
 | `ruflo_plugin_list` | Lista los plugins de ruflo instalados |
 | `ruflo_plugin_scan` | Escanea directorios y registra plugins |
+| `ruflo_plugin_validate` | Valida estructura, seguridad y obsolescencia de un plugin |
+
+### Quality Gates (plugin validation)
+
+Usa `ruflo_plugin_validate <directory>` para obtener un reporte con 3 categorías:
+- **Estructura**: plugin.json válido, campos requeridos, agentes bien definidos, skills existentes
+- **Seguridad**: API keys hardcodeadas, tokens, URLs con credenciales, variables de entorno
+- **Obsolescencia**: plugin sin modificar >90 días (warning) o >180 días (fallo)
+
+Ejemplo de uso por un agente:
+```
+ruflo_plugin_validate directory: /path/to/plugins/mi-plugin
+```

@@ -18,13 +18,18 @@ export interface ProviderOptions {
   max_tokens?: number;
 }
 
+export interface ProviderResult {
+  text: string;
+  usage?: { prompt_tokens: number; completion_tokens: number };
+}
+
 export async function callProvider(
   messages: ProviderMessage[],
   options: ProviderOptions = {},
-): Promise<string> {
+): Promise<ProviderResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return generateOfflineFallback(messages);
+    return { text: generateOfflineFallback(messages) };
   }
 
   const models = options.model ? [options.model, ...MODEL_CHAIN.filter(m => m !== options.model)] : MODEL_CHAIN;
@@ -58,7 +63,10 @@ export async function callProvider(
 
       const data = await response.json();
       const content = data?.choices?.[0]?.message?.content;
-      if (content) return content;
+      if (content) return {
+        text: content,
+        usage: data?.usage ? { prompt_tokens: data.usage.prompt_tokens || 0, completion_tokens: data.usage.completion_tokens || 0 } : undefined,
+      };
       lastError = 'Respuesta vacía del modelo';
     } catch (err: any) {
       lastError = err.message;
@@ -66,7 +74,7 @@ export async function callProvider(
     }
   }
 
-  return generateOfflineFallback(messages, lastError || 'Todos los modelos fallaron');
+  return { text: generateOfflineFallback(messages, lastError || 'Todos los modelos fallaron') };
 }
 
 function generateOfflineFallback(messages: ProviderMessage[], error?: string): string {

@@ -44,6 +44,13 @@ export interface Plugin {
   enabled: number; agent_count: number; created_at: string;
 }
 
+export interface StatsResponse {
+  tokens: { input: number; output: number; cache: number; cost: number };
+  agents: { total: number; used: number; unused: number };
+  skills: { installed: number; used: number; unusedCount: number; unusedList: string[] };
+  balances: { openrouter: number | null; imagerouter: number | null };
+}
+
 export const api = {
   health: () => request<{ status: string; version: string }>('/api/health'),
   agents: {
@@ -95,6 +102,9 @@ export const api = {
       request<{ success: boolean }>(`/api/context/${encodeURIComponent(key)}`, {
         method: 'DELETE',
       }),
+  },
+  stats: {
+    get: () => request<StatsResponse>('/api/stats'),
   },
   plugins: {
     list: () => request<Plugin[]>('/api/plugins'),

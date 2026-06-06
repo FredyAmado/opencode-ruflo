@@ -8,7 +8,7 @@ export interface SpawnResult {
   response: string;
 }
 
-export async function spawnAgent(agentId: number, prompt: string): Promise<SpawnResult> {
+export async function spawnAgent(agentId: number, prompt: string, modelOverride?: string): Promise<SpawnResult> {
   const store = new AgentStore();
   const taskStore = new TaskStore();
   const obsStore = new ObservationStore();
@@ -33,13 +33,18 @@ export async function spawnAgent(agentId: number, prompt: string): Promise<Spawn
   });
 
   try {
-    const response = await callProvider([
+    const result = await callProvider([
       { role: 'system', content: persona },
       { role: 'user', content: prompt },
-    ], { model: agent.model || undefined });
+    ], { model: modelOverride || agent.model || undefined });
+
+    const response = result.text;
 
     taskStore.updateStatus(taskId, 'completed', response);
-    store.update(agentId, { status: 'idle' });
+    if (result.usage) {
+      taskStore.updateTokens(taskId, result.usage.prompt_tokens, result.usage.completion_tokens);
+    }
+    store.update(agentId, { status: 'idle', last_used_at: new Date().toISOString() });
 
     obsStore.create({
       agent_id: agentId,

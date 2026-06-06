@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
-import { api, Agent, Swarm, Observation, Plugin } from '../api.ts'
+import { api, Agent, Swarm, Observation, Plugin, StatsResponse } from '../api.ts'
+
+function fmt(n: number): string {
+  return n.toLocaleString()
+}
 
 export default function Dashboard() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [swarms, setSwarms] = useState<Swarm[]>([])
   const [observations, setObservations] = useState<Observation[]>([])
   const [plugins, setPlugins] = useState<Plugin[]>([])
+  const [stats, setStats] = useState<StatsResponse | null>(null)
   const [health, setHealth] = useState<string>('')
 
   useEffect(() => {
@@ -14,6 +19,7 @@ export default function Dashboard() {
     api.swarms.list().then(setSwarms).catch(() => {})
     api.observations.list({ limit: 5 }).then(setObservations).catch(() => {})
     api.plugins.list().then(setPlugins).catch(() => {})
+    api.stats.get().then(setStats).catch(() => {})
   }, [])
 
   const running = agents.filter(a => a.status === 'running').length
@@ -26,9 +32,42 @@ export default function Dashboard() {
         Worker: {health} — {agents.length} agentes, {swarms.length} swarms, {plugins.length} plugins
       </p>
 
+      {/* Token stats */}
       <div className="stat-grid">
+        <div className="stat"><div className="num">{stats ? fmt(stats.tokens.input) : '—'}</div><div className="label">Tokens Input</div></div>
+        <div className="stat"><div className="num">{stats ? fmt(stats.tokens.output) : '—'}</div><div className="label">Tokens Output</div></div>
+        <div className="stat"><div className="num">{stats ? fmt(stats.tokens.cache) : '—'}</div><div className="label">Cache Hits</div></div>
+        <div className="stat"><div className="num">{stats ? `$${stats.tokens.cost.toFixed(4)}` : '—'}</div><div className="label">Costo Est.</div></div>
+      </div>
+
+      {/* Agent & Skill usage */}
+      <div className="stat-grid" style={{ marginTop: '0.75rem' }}>
         <div className="stat"><div className="num">{agents.length}</div><div className="label">Agentes</div></div>
+        <div className="stat"><div className="num">{stats ? stats.agents.used : '—'}</div><div className="label">Usados</div></div>
         <div className="stat"><div className="num">{running}</div><div className="label">Activos</div></div>
+        <div className="stat"><div className="num">{stats ? stats.skills.installed : '—'}</div><div className="label">Skills Instalados</div></div>
+        <div className="stat"><div className="num">{stats ? stats.skills.used : '—'}</div><div className="label">Skills Usados</div></div>
+        <div className="stat"><div className="num">{stats ? stats.skills.unusedCount : '—'}</div><div className="label">Skills Sin Uso</div></div>
+      </div>
+
+      {/* Balance cards */}
+      <div className="stat-grid" style={{ marginTop: '0.75rem' }}>
+        <div className="stat">
+          <div className="num" style={{ color: 'var(--accent)' }}>
+            {stats?.balances.openrouter !== null && stats?.balances.openrouter !== undefined
+              ? `$${stats.balances.openrouter.toFixed(2)}`
+              : '—'}
+          </div>
+          <div className="label">OpenRouter</div>
+        </div>
+        <div className="stat">
+          <div className="num" style={{ color: 'var(--accent)' }}>
+            {stats?.balances.imagerouter !== null && stats?.balances.imagerouter !== undefined
+              ? `$${stats.balances.imagerouter.toFixed(2)}`
+              : '—'}
+          </div>
+          <div className="label">ImageRouter</div>
+        </div>
         <div className="stat"><div className="num">{swarms.length}</div><div className="label">Swarms</div></div>
         <div className="stat"><div className="num">{completedSwarms}</div><div className="label">Completados</div></div>
         <div className="stat"><div className="num">{observations.length}</div><div className="label">Observaciones</div></div>
