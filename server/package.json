@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "zod": "^3.24.4"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/bun": "^1.2.12",
